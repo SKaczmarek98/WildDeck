@@ -1,0 +1,20 @@
+{
+    "name": "wilddeck/game-engine",
+    "type": "project",
+    "require": {
+        "php": "^8.4"
+    },
+    "autoload": {
+        "psr-4": {
+            "WildDeck\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "WildDeck\\Tests\\": "tests/"
+        }
+    },
+    "require-dev": {
+        "phpunit/phpunit": "*"
+    }
+}
