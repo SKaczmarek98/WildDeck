@@ -9,6 +9,7 @@ use WildDeck\Cards\CardCollection;
 use WildDeck\Cards\Deck;
 use WildDeck\Game\Exception\CardNotInHandException;
 use WildDeck\Game\Exception\GameAlreadyEndedException;
+use WildDeck\Game\Exception\NoAlivePlayerFoundException;
 use WildDeck\Game\Exception\NotEnoughCardsToStartGameException;
 use WildDeck\Game\Exception\NotPlayerTurnException;
 use WildDeck\Game\Exception\PlayerNotInGameException;
@@ -17,9 +18,11 @@ class Game
 {
     private const int CARD_PER_PLAYER = 2;
 
-    private Player $playerOne;
-    private Player $playerTwo;
-    private Player $currentPlayer;
+    /**
+     * @var Player[]
+     */
+    private array $players;
+    private int $currentPlayerIndex = 0;
     private ?Player $winner = null;
 
     private bool $gameIsEnd;
@@ -27,21 +30,32 @@ class Game
     private CardCollection $discardPile;
 
 
+    /**
+     * @throws NotEnoughCardsToStartGameException
+     * @var Player[]
+     */
     public function __construct(
-        Player $playerOne,
-        Player $playerTwo,
-        Deck   $deck
+        array $players,
+        Deck  $deck
     )
     {
         $this->drawPile = new CardCollection();
         $this->discardPile = new CardCollection();
-        $this->createGame($playerOne, $playerTwo, $deck);
+        $this->players = $players;
+        $this->currentPlayerIndex = 0;
+        $this->gameIsEnd = false;
+
+        $this->preapareCards($deck);
     }
 
-
-    private function createGame(Player $playerOne, Player $playerTwo, Deck $deck): void
+    /**
+     * @throws NotEnoughCardsToStartGameException
+     */
+    private function preapareCards(
+        Deck $deck
+    ): void
     {
-        $requiredCards = self::CARD_PER_PLAYER * 2;
+        $requiredCards = self::CARD_PER_PLAYER * count($this->players);
 
         if ($deck->count() < $requiredCards) {
             throw new NotEnoughCardsToStartGameException();
@@ -51,19 +65,8 @@ class Game
             $this->drawPile->add($card);
         }
 
-        $this->playerOne = $playerOne;
-        $this->playerTwo = $playerTwo;
-        $this->currentPlayer = $playerOne;
-        $this->gameIsEnd = false;
-
-
-        $players = [
-            $this->playerOne,
-            $this->playerTwo,
-        ];
-
         for ($i = 0; $i < self::CARD_PER_PLAYER; $i++) {
-            foreach ($players as $player) {
+            foreach ($this->players as $player) {
                 $player->getHand()->add(
                     $this->drawPile->takeFirst()
                 );
@@ -72,30 +75,33 @@ class Game
 
     }
 
-    public function playCard(Player $player, Card $card): void
+    public function playCard(
+        Player  $player,
+        Card    $card,
+        ?Player $target = null
+    ): void
     {
         $this->validatePlayCard($player, $card);
 
-        $opponent = $this->getOpponentOf($player);
-
         foreach ($card->getEffects() as $effect) {
-            $effect->apply($this, $player);
+            $effect->effect->apply($this, $effect->target->resolve($this, $player, $target));
         }
 
-        if ($opponent->getLifePoints() <= 0) {
-            $this->endGame($player);
-        }
+        $this->checkGameEnd();
 
         $this->discardPile->add($player->getHand()->take($card));
     }
 
-    private function validatePlayCard(Player $player, Card $card): void
+    private function validatePlayCard(
+        Player $player,
+        Card   $card
+    ): void
     {
         if ($this->gameIsEnd) {
             throw new GameAlreadyEndedException();
         }
 
-        if ($this->currentPlayer !== $player) {
+        if ($this->getCurrentPlayer() !== $player) {
             throw new NotPlayerTurnException();
         }
 
@@ -105,23 +111,51 @@ class Game
 
     }
 
-    public function endTurn(Player $player): void
+    private function checkGameEnd(): void
+    {
+        $alivePlayers = array_values(
+            array_filter(
+                $this->players,
+                static fn(Player $player): bool => $player->isAlive(),
+            )
+        );
+
+        if (count($alivePlayers) > 1) {
+            return;
+        }
+
+        $this->gameIsEnd = true;
+        $this->winner = $alivePlayers[0] ?? null;
+    }
+
+    public function endTurn(
+        Player $player
+    ): void
     {
         if ($this->gameIsEnd) {
             throw new GameAlreadyEndedException();
         }
 
-        if ($this->currentPlayer !== $player) {
+        if ($this->getCurrentPlayer() !== $player) {
             throw new NotPlayerTurnException();
         }
 
-        $this->currentPlayer = $this->getOpponentOf($player);
+        $playersCount = count($this->players);
+
+        for ($i = 0; $i < $playersCount; $i++) {
+            $this->currentPlayerIndex = ($this->currentPlayerIndex + 1) % $playersCount;
+
+            if ($this->getCurrentPlayer()->isAlive()) {
+                return;
+            }
+        }
+
+        throw new NoAlivePlayerFoundException();
     }
 
-    private function endGame(Player $player): void
+    private function getCurrentPlayer(): Player
     {
-        $this->gameIsEnd = true;
-        $this->winner = $player;
+        return $this->players[$this->currentPlayerIndex];
     }
 
     public function isEnded(): bool
@@ -134,20 +168,9 @@ class Game
         return $this->winner;
     }
 
-    public function getOpponentOf(Player $player): Player
-    {
-        if ($player === $this->playerOne) {
-            return $this->playerTwo;
-        }
-
-        if ($player === $this->playerTwo) {
-            return $this->playerOne;
-        }
-
-        throw new PlayerNotInGameException();
-    }
-
-    public function drawCardFor(Player $player): void
+    public function drawCardFor(
+        Player $player
+    ): void
     {
         $card = $this->drawPile->takeFirst();
 
@@ -156,5 +179,27 @@ class Game
         }
 
         $player->getHand()->add($card);
+    }
+
+    /**
+     * @return Player[]
+     */
+    public function getOpponentsOf(Player $player): array
+    {
+        $this->validatePlayerInGame($player);
+
+        return array_values(
+            array_filter(
+                $this->players,
+                static fn(Player $candidate): bool => $candidate !== $player,
+            ),
+        );
+    }
+
+    private function validatePlayerInGame(Player $player): void
+    {
+        if (!in_array($player, $this->players, true)) {
+            throw new PlayerNotInGameException();
+        }
     }
 }

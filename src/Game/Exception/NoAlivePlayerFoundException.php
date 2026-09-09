@@ -6,11 +6,10 @@ namespace WildDeck\Game\Exception;
 
 use RuntimeException;
 
-final class NotEnoughCardsToStartGameException extends RuntimeException
+final class NoAlivePlayerFoundException extends RuntimeException
 {
-
     public function __construct()
     {
-        parent::__construct("Not enough cards to start game");
+        parent::__construct('No alive player found.');
     }
 }

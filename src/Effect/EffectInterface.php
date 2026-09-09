@@ -9,6 +9,10 @@ use WildDeck\Game\Player;
 
 interface EffectInterface
 {
-    public function apply(Game $game, Player $source): void;
+
+    /**
+     * @param Player[] $targets
+     */
+    public function apply(Game $game, array $targets): void;
 
 }

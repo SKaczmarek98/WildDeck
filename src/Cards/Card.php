@@ -4,12 +4,10 @@ declare(strict_types=1);
 
 namespace WildDeck\Cards;
 
-use WildDeck\Effect\EffectInterface;
-
 final class Card
 {
     /**
-     * @param EffectInterface[] $effects
+     * @param CardEffect[] $effects
      */
     public function __construct(
         private string $name,
@@ -24,10 +22,11 @@ final class Card
     }
 
     /**
-     * @return EffectInterface[]
+     * @return CardEffect[]
      */
     public function getEffects(): array
     {
         return $this->effects;
     }
+
 }

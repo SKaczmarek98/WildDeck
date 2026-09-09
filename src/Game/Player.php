@@ -63,4 +63,9 @@ class Player
         );
     }
 
+    public function isAlive(): bool
+    {
+        return $this->lifePoints > 0;
+    }
+
 }

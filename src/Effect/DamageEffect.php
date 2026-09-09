@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace WildDeck\Effect;
 
 use WildDeck\Game\Game;
-use WildDeck\Game\Player;
 
 final class DamageEffect implements EffectInterface
 {
@@ -15,10 +14,10 @@ final class DamageEffect implements EffectInterface
     {
     }
 
-    public function apply(Game $game, Player $source): void
+    public function apply(Game $game, array $targets): void
     {
-        $opponent = $game->getOpponentOf($source);
-
-        $opponent->takeDamage($this->amount);
+        foreach ($targets as $target) {
+            $target->takeDamage($this->amount);
+        }
     }
 }

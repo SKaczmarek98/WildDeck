@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace WildDeck\Effect;
 
 use WildDeck\Game\Game;
-use WildDeck\Game\Player;
 
 final class DrawEffect implements EffectInterface
 {
@@ -16,10 +15,12 @@ final class DrawEffect implements EffectInterface
     {
     }
 
-    public function apply(Game $game, Player $source): void
+    public function apply(Game $game, array $targets): void
     {
-        for ($i = 0; $i < $this->amount; $i++) {
-            $game->drawCardFor($source);
+        foreach ($targets as $target) {
+            for ($i = 0; $i < $this->amount; $i++) {
+                $game->drawCardFor($target);
+            }
         }
     }
 }
