@@ -212,7 +212,7 @@ class GameTest extends TestCase
         self::assertTrue($alice->getHand()->contains($drawCard2));
     }
 
-    public function testChangeCurrentPlayer(): void
+    public function testPlayersTakeTurnsInOrderAndCycleBackToFirstPlayer(): void
     {
         $alice = new Player('Alice');
         $bob = new Player('Bob');
@@ -227,11 +227,12 @@ class GameTest extends TestCase
                              $bobCard,
                              $joshCard,
                              $aliceCard2,
-                             new Card('Draw card 2', []),
-                             new Card('Draw card 2', []),
+                             new Card('Card 1', []),
+                             new Card('Card 2', []),
         ]);
 
         $game = new Game([$alice, $bob, $josh], $deck);
+
         $game->playCard($alice, $aliceCard, $bob);
         $game->endTurn($alice);
 
@@ -243,5 +244,8 @@ class GameTest extends TestCase
 
         $game->playCard($alice, $aliceCard2, $bob);
 
+        self::assertSame(5, $bob->getLifePoints());
+        self::assertSame(15, $josh->getLifePoints());
+        self::assertSame(20, $alice->getLifePoints());
     }
 }

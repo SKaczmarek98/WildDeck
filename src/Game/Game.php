@@ -140,10 +140,16 @@ class Game
             throw new NotPlayerTurnException();
         }
 
+        $this->moveToNextAlivePlayer();
+    }
+
+    private function moveToNextAlivePlayer(): void
+    {
         $playersCount = count($this->players);
 
         for ($i = 0; $i < $playersCount; $i++) {
-            $this->currentPlayerIndex = ($this->currentPlayerIndex + 1) % $playersCount;
+            $this->currentPlayerIndex =
+                ($this->currentPlayerIndex + 1) % $playersCount;
 
             if ($this->getCurrentPlayer()->isAlive()) {
                 return;
