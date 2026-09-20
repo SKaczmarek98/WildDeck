@@ -10,6 +10,7 @@ use WildDeck\Cards\Deck;
 use WildDeck\Game\Exception\CardNotInHandException;
 use WildDeck\Game\Exception\GameAlreadyEndedException;
 use WildDeck\Game\Exception\NoAlivePlayerFoundException;
+use WildDeck\Game\Exception\NoManaToPlayCardException;
 use WildDeck\Game\Exception\NotEnoughCardsToStartGameException;
 use WildDeck\Game\Exception\NotPlayerTurnException;
 use WildDeck\Game\Exception\PlayerNotInGameException;
@@ -87,6 +88,8 @@ class Game
             $effect->effect->apply($this, $effect->target->resolve($this, $player, $target));
         }
 
+        $player->takeMana($card->getCost());
+
         $this->checkGameEnd();
 
         $this->discardPile->add($player->getHand()->take($card));
@@ -107,6 +110,10 @@ class Game
 
         if (!$player->getHand()->contains($card)) {
             throw new CardNotInHandException();
+        }
+
+        if ($card->getCost() > $player->getManaPoints()){
+            throw new NoManaToPlayCardException();
         }
 
     }

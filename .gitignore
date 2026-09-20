@@ -3,3 +3,4 @@
 .phpunit.result.cache
 .env.local
 .env.*.local
+command.txt

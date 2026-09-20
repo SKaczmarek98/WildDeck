@@ -12,6 +12,7 @@ final class Card
     public function __construct(
         private string $name,
         private array  $effects,
+        private int    $cost = 0,
     )
     {
     }
@@ -27,6 +28,11 @@ final class Card
     public function getEffects(): array
     {
         return $this->effects;
+    }
+
+    public function getCost(): int
+    {
+        return $this->cost;
     }
 
 }

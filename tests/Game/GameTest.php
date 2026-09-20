@@ -11,6 +11,7 @@ use WildDeck\Cards\Deck;
 use WildDeck\Effect\DamageEffect;
 use WildDeck\Effect\DrawEffect;
 use WildDeck\Effect\HealEffect;
+use WildDeck\Game\Exception\NoManaToPlayCardException;
 use WildDeck\Game\Exception\NotEnoughCardsToStartGameException;
 use WildDeck\Game\Exception\NotPlayerTurnException;
 use WildDeck\Game\Game;
@@ -34,14 +35,16 @@ class GameTest extends TestCase
                         ]);
     }
 
-    private function createFireballCard(int $amount = 5): Card
+    private function createFireballCard(int $amount = 5, int $cost = 0): Card
     {
         return new Card('Fireball', [
             new CardEffect(
                 new DamageEffect($amount),
                 new SelectedOpponentTarget()
             )
-        ]);
+        ],
+          $cost
+        );
     }
 
     private function createHealCard(int $amount = 5): Card
@@ -229,7 +232,7 @@ class GameTest extends TestCase
                              $aliceCard2,
                              new Card('Card 1', []),
                              new Card('Card 2', []),
-        ]);
+                         ]);
 
         $game = new Game([$alice, $bob, $josh], $deck);
 
@@ -247,5 +250,19 @@ class GameTest extends TestCase
         self::assertSame(5, $bob->getLifePoints());
         self::assertSame(15, $josh->getLifePoints());
         self::assertSame(20, $alice->getLifePoints());
+    }
+
+    public function testPlayerCannotPlayCardWithoutEnoughMana(): void
+    {
+        $alice = new Player('Alice');
+        $bob = new Player('Bob');
+
+        $aliceCard = $this->createFireballCard(cost: 4);
+        $deck = $this->createDeck($aliceCard);
+
+        $game = new Game([$alice, $bob], $deck);
+
+        $this->expectException(NoManaToPlayCardException::class);
+        $game->playCard($alice, $aliceCard, $bob);
     }
 }
