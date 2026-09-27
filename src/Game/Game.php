@@ -84,11 +84,23 @@ class Game
     {
         $this->validatePlayCard($player, $card);
 
+        /**
+         * @var PreparedEffect[] $preparedEffects
+         */
+        $preparedEffects = [];
+
         foreach ($card->getEffects() as $effect) {
-            $effect->effect->apply($this, $effect->target->resolve($this, $player, $target));
+            $preparedEffects[] = new PreparedEffect(
+                $effect->effect,
+                $effect->target->resolve($this, $player, $target)
+            );
         }
 
         $player->takeMana($card->getCost());
+
+        foreach ($preparedEffects as $resolvedEffect) {
+            $resolvedEffect->effect->apply($this, $resolvedEffect->targets);
+        }
 
         $this->checkGameEnd();
 
@@ -112,7 +124,7 @@ class Game
             throw new CardNotInHandException();
         }
 
-        if ($card->getCost() > $player->getManaPoints()){
+        if ($card->getCost() > $player->getManaPoints()) {
             throw new NoManaToPlayCardException();
         }
 
@@ -155,8 +167,8 @@ class Game
         $playersCount = count($this->players);
 
         for ($i = 0; $i < $playersCount; $i++) {
-            $this->currentPlayerIndex =
-                ($this->currentPlayerIndex + 1) % $playersCount;
+            $this->currentPlayerIndex
+                = ($this->currentPlayerIndex + 1) % $playersCount;
 
             if ($this->getCurrentPlayer()->isAlive()) {
                 return;

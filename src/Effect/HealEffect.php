@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace WildDeck\Effect;
 
 use WildDeck\Game\Game;
+use WildDeck\Game\Player;
 
 final class HealEffect implements EffectInterface
 {
@@ -14,6 +15,9 @@ final class HealEffect implements EffectInterface
     {
     }
 
+    /**
+     * @param Player[] $targets
+     */
     public function apply(Game $game, array $targets): void
     {
         foreach ($targets as $target) {
