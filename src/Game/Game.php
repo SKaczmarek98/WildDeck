@@ -84,6 +84,8 @@ class Game
     {
         $this->validatePlayCard($player, $card);
 
+        $this->canPlayCard($player, $card);
+
         /**
          * @var PreparedEffect[] $preparedEffects
          */
@@ -128,6 +130,25 @@ class Game
             throw new NoManaToPlayCardException();
         }
 
+    }
+
+    private function getCurrentPlayer(): Player
+    {
+        return $this->players[$this->currentPlayerIndex];
+    }
+
+    private function canPlayCard(
+        Player $player,
+        Card   $card,
+    ): bool
+    {
+        foreach ($card->getRequirements() as $requirement) {
+            if (!$requirement->check($this, $player)->satisfied) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     private function checkGameEnd(): void
@@ -178,11 +199,6 @@ class Game
         throw new NoAlivePlayerFoundException();
     }
 
-    private function getCurrentPlayer(): Player
-    {
-        return $this->players[$this->currentPlayerIndex];
-    }
-
     public function isEnded(): bool
     {
         return $this->gameIsEnd;
@@ -209,7 +225,9 @@ class Game
     /**
      * @return Player[]
      */
-    public function getOpponentsOf(Player $player): array
+    public function getOpponentsOf(
+        Player $player
+    ): array
     {
         $this->validatePlayerInGame($player);
 
@@ -221,7 +239,9 @@ class Game
         );
     }
 
-    private function validatePlayerInGame(Player $player): void
+    private function validatePlayerInGame(
+        Player $player
+    ): void
     {
         if (!in_array($player, $this->players, true)) {
             throw new PlayerNotInGameException();

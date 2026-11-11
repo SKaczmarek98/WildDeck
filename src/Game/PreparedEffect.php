@@ -14,7 +14,7 @@ final readonly class PreparedEffect
      */
     public function __construct(
         public EffectInterface $effect,
-        public array $targets = []
+        public array           $targets = []
     )
     {
     }

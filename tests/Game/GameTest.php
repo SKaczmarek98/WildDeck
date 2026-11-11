@@ -16,47 +16,13 @@ use WildDeck\Game\Exception\NotEnoughCardsToStartGameException;
 use WildDeck\Game\Exception\NotPlayerTurnException;
 use WildDeck\Game\Game;
 use WildDeck\Game\Player;
+use WildDeck\Requirement\MaxHealthRequirement;
 use WildDeck\Target\SelectedOpponentTarget;
 use WildDeck\Target\SelfTargetResolver;
+use WildDeck\Tests\TestHelper;
 
 class GameTest extends TestCase
 {
-
-    private function createDeck(
-        Card  $aliceCard,
-        ?Card $bobCard = null,
-    ): Deck
-    {
-        return new Deck([
-                            $aliceCard,
-                            $bobCard ?? new Card('Bob filler 1', []),
-                            new Card('Alice filler 2', []),
-                            new Card('Bob filler 2', []),
-                        ]);
-    }
-
-    private function createFireballCard(int $amount = 5, int $cost = 0): Card
-    {
-        return new Card('Fireball', [
-            new CardEffect(
-                new DamageEffect($amount),
-                new SelectedOpponentTarget()
-            )
-        ],
-          $cost
-        );
-    }
-
-    private function createHealCard(int $amount = 5): Card
-    {
-        return new Card('Heal', [
-            new CardEffect(
-                new HealEffect($amount),
-                new SelfTargetResolver()
-            )
-        ]);
-    }
-
 
     public function testGameCannotStartWithoutEnoughCards(): void
     {
@@ -64,7 +30,7 @@ class GameTest extends TestCase
         $bob = new Player('Bob');
 
         $deck = new Deck([
-                             $this->createFireballCard(),
+                             TestHelper::createFireballCard(),
                          ]);
 
         $this->expectException(NotEnoughCardsToStartGameException::class);
@@ -76,9 +42,9 @@ class GameTest extends TestCase
         $alice = new Player('Alice');
         $bob = new Player('Bob');
 
-        $fireball = $this->createFireballCard();
+        $fireball = TestHelper::createFireballCard();
 
-        $deck = $this->createDeck($fireball);
+        $deck = TestHelper::createDeck($fireball);
 
         $game = new Game([$alice, $bob], $deck);
         $game->playCard($alice, $fireball, $bob);
@@ -92,9 +58,9 @@ class GameTest extends TestCase
         $bob = new Player('Bob');
 
         $aliceCard = new Card('Alice card', []);
-        $bobCard = $this->createFireballCard();
+        $bobCard = TestHelper::createFireballCard();
 
-        $deck = $this->createDeck($aliceCard, $bobCard);
+        $deck = TestHelper::createDeck($aliceCard, $bobCard);
 
         $game = new Game([$alice, $bob], $deck);
 
@@ -109,8 +75,8 @@ class GameTest extends TestCase
         $alice = new Player('Alice');
         $bob = new Player('Bob');
 
-        $fireball = $this->createFireballCard();
-        $deck = $this->createDeck($fireball);
+        $fireball = TestHelper::createFireballCard();
+        $deck = TestHelper::createDeck($fireball);
 
         $game = new Game([$alice, $bob], $deck);
         $game->playCard($alice, $fireball, $bob);
@@ -123,8 +89,8 @@ class GameTest extends TestCase
         $alice = new Player('Alice');
         $bob = new Player('Bob');
 
-        $fireball = $this->createFireballCard(20);
-        $deck = $this->createDeck($fireball);
+        $fireball = TestHelper::createFireballCard(20);
+        $deck = TestHelper::createDeck($fireball);
 
         $game = new Game([$alice, $bob], $deck);
         $game->playCard($alice, $fireball, $bob);
@@ -138,8 +104,8 @@ class GameTest extends TestCase
         $alice = new Player('Alice');
         $bob = new Player('Bob');
 
-        $heal = $this->createHealCard();
-        $deck = $this->createDeck($heal);
+        $heal = TestHelper::createHealCard();
+        $deck = TestHelper::createDeck($heal);
 
         $game = new Game([$alice, $bob], $deck);
         $alice->takeDamage(10);
@@ -153,8 +119,8 @@ class GameTest extends TestCase
         $alice = new Player('Alice');
         $bob = new Player('Bob');
 
-        $aliceCard = $this->createFireballCard();
-        $deck = $this->createDeck($aliceCard);
+        $aliceCard = TestHelper::createFireballCard();
+        $deck = TestHelper::createDeck($aliceCard);
 
         $game = new Game([$alice, $bob], $deck);
 
@@ -179,7 +145,7 @@ class GameTest extends TestCase
             ),
         ]);
 
-        $deck = $this->createDeck($aliceCard);
+        $deck = TestHelper::createDeck($aliceCard);
 
         $game = new Game([$alice, $bob], $deck);
         $alice->takeDamage(10);
@@ -203,7 +169,7 @@ class GameTest extends TestCase
         $drawCard1 = new Card('Draw card 1', []);
         $drawCard2 = new Card('Draw card 2', []);
 
-        $deck = $this->createDeck($aliceCard);
+        $deck = TestHelper::createDeck($aliceCard);
         $deck->add($drawCard1);
         $deck->add($drawCard2);
 
@@ -221,10 +187,10 @@ class GameTest extends TestCase
         $bob = new Player('Bob');
         $josh = new Player('Josh');
 
-        $aliceCard = $this->createFireballCard();
-        $aliceCard2 = $this->createFireballCard();
-        $bobCard = $this->createFireballCard();
-        $joshCard = $this->createFireballCard();
+        $aliceCard = TestHelper::createFireballCard();
+        $aliceCard2 = TestHelper::createFireballCard();
+        $bobCard = TestHelper::createFireballCard();
+        $joshCard = TestHelper::createFireballCard();
         $deck = new Deck([
                              $aliceCard,
                              $bobCard,
@@ -257,12 +223,30 @@ class GameTest extends TestCase
         $alice = new Player('Alice');
         $bob = new Player('Bob');
 
-        $aliceCard = $this->createFireballCard(cost: 4);
-        $deck = $this->createDeck($aliceCard);
+        $aliceCard = TestHelper::createFireballCard(cost: 4);
+        $deck = TestHelper::createDeck($aliceCard);
 
         $game = new Game([$alice, $bob], $deck);
 
         $this->expectException(NoManaToPlayCardException::class);
         $game->playCard($alice, $aliceCard, $bob);
     }
+
+    public function testPlayCardConsumeMana(): void
+    {
+        $alice = new Player('Alice');
+        $bob = new Player('Bob');
+
+        $aliceCard = TestHelper::createFireballCard(cost: 1);
+        $deck = TestHelper::createDeck($aliceCard);
+
+        $game = new Game([$alice, $bob], $deck);
+
+        $game->playCard($alice, $aliceCard, $bob);
+
+        self::assertSame(2, $alice->getManaPoints());
+    }
+
+
+
 }
