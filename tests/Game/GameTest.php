@@ -11,6 +11,7 @@ use WildDeck\Cards\Deck;
 use WildDeck\Effect\DamageEffect;
 use WildDeck\Effect\DrawEffect;
 use WildDeck\Effect\HealEffect;
+use WildDeck\Game\Exception\GameAlreadyEndedException;
 use WildDeck\Game\Exception\NoManaToPlayCardException;
 use WildDeck\Game\Exception\NotEnoughCardsToStartGameException;
 use WildDeck\Game\Exception\NotPlayerTurnException;
@@ -127,6 +128,31 @@ class GameTest extends TestCase
         $this->expectException(NotPlayerTurnException::class);
 
         $game->endTurn($bob);
+    }
+
+    public function testStartingNextTurnDrawsExactlyOneCardForNextPlayer(): void
+    {
+        $alice = new Player('Alice');
+        $bob = new Player('Bob');
+        $firstDraw = new Card('First draw', []);
+        $secondDraw = new Card('Second draw', []);
+        $deck = TestHelper::createDeck();
+        $deck->add($firstDraw);
+        $deck->add($secondDraw);
+        $game = new Game([$alice, $bob], $deck);
+
+        $game->endTurn($alice);
+
+        self::assertSame(2, $alice->getHand()->count());
+        self::assertSame(3, $bob->getHand()->count());
+        self::assertTrue($bob->getHand()->contains($firstDraw));
+        self::assertFalse($bob->getHand()->contains($secondDraw));
+
+        $game->endTurn($bob);
+
+        self::assertSame(3, $alice->getHand()->count());
+        self::assertSame(3, $bob->getHand()->count());
+        self::assertTrue($alice->getHand()->contains($secondDraw));
     }
 
     public function testDrainCardDamagesOpponentAndHealsPlayer(): void

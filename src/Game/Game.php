@@ -14,6 +14,7 @@ use WildDeck\Game\Exception\NoManaToPlayCardException;
 use WildDeck\Game\Exception\NotEnoughCardsToStartGameException;
 use WildDeck\Game\Exception\NotPlayerTurnException;
 use WildDeck\Game\Exception\PlayerNotInGameException;
+use WildDeck\Game\Exception\RequiredException;
 
 class Game
 {
@@ -47,6 +48,7 @@ class Game
         $this->gameIsEnd = false;
 
         $this->preapareCards($deck);
+        $this->startTurn();
     }
 
     /**
@@ -83,8 +85,6 @@ class Game
     ): void
     {
         $this->validatePlayCard($player, $card);
-
-        $this->canPlayCard($player, $card);
 
         /**
          * @var PreparedEffect[] $preparedEffects
@@ -130,6 +130,8 @@ class Game
             throw new NoManaToPlayCardException();
         }
 
+        $this->canPlayCard($player, $card);
+
     }
 
     private function getCurrentPlayer(): Player
@@ -140,15 +142,15 @@ class Game
     private function canPlayCard(
         Player $player,
         Card   $card,
-    ): bool
+    ): void
     {
         foreach ($card->getRequirements() as $requirement) {
-            if (!$requirement->check($this, $player)->satisfied) {
-                return false;
+            $result = $requirement->check($this, $player);
+
+            if (!$result->satisfied) {
+                throw new RequiredException($result->reason ?? 'CARD_REQUIREMENT_NOT_SATISFIED');
             }
         }
-
-        return true;
     }
 
     private function checkGameEnd(): void
@@ -181,6 +183,7 @@ class Game
         }
 
         $this->moveToNextAlivePlayer();
+        $this->startTurn();
     }
 
     private function moveToNextAlivePlayer(): void
@@ -197,6 +200,11 @@ class Game
         }
 
         throw new NoAlivePlayerFoundException();
+    }
+
+    private function startTurn(): void
+    {
+       $this->drawCardFor($this->getCurrentPlayer());
     }
 
     public function isEnded(): bool
