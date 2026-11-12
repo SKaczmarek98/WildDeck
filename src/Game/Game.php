@@ -14,7 +14,7 @@ use WildDeck\Game\Exception\NoManaToPlayCardException;
 use WildDeck\Game\Exception\NotEnoughCardsToStartGameException;
 use WildDeck\Game\Exception\NotPlayerTurnException;
 use WildDeck\Game\Exception\PlayerNotInGameException;
-use WildDeck\Game\Exception\RequiredException;
+use WildDeck\Game\Exception\RequirementNotSatisfiedException;
 
 class Game
 {
@@ -148,7 +148,7 @@ class Game
             $result = $requirement->check($this, $player);
 
             if (!$result->satisfied) {
-                throw new RequiredException($result->reason ?? 'CARD_REQUIREMENT_NOT_SATISFIED');
+                throw new RequirementNotSatisfiedException($result->reason ?? 'CARD_REQUIREMENT_NOT_SATISFIED');
             }
         }
     }
@@ -205,6 +205,7 @@ class Game
     private function startTurn(): void
     {
        $this->drawCardFor($this->getCurrentPlayer());
+       $this->getCurrentPlayer()->manaRegeneration(Player::MAX_MANA_POINTS);
     }
 
     public function isEnded(): bool

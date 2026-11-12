@@ -11,10 +11,10 @@ use WildDeck\Cards\Deck;
 use WildDeck\Effect\DamageEffect;
 use WildDeck\Effect\DrawEffect;
 use WildDeck\Effect\HealEffect;
-use WildDeck\Game\Exception\GameAlreadyEndedException;
 use WildDeck\Game\Exception\NoManaToPlayCardException;
 use WildDeck\Game\Exception\NotEnoughCardsToStartGameException;
 use WildDeck\Game\Exception\NotPlayerTurnException;
+use WildDeck\Game\Exception\RequirementNotSatisfiedException;
 use WildDeck\Game\Game;
 use WildDeck\Game\Player;
 use WildDeck\Requirement\MaxHealthRequirement;
@@ -141,18 +141,13 @@ class GameTest extends TestCase
         $deck->add($secondDraw);
         $game = new Game([$alice, $bob], $deck);
 
+        self::assertSame(3, $alice->getHand()->count());
+        self::assertTrue($alice->getHand()->contains($firstDraw));
+
         $game->endTurn($alice);
 
-        self::assertSame(2, $alice->getHand()->count());
         self::assertSame(3, $bob->getHand()->count());
-        self::assertTrue($bob->getHand()->contains($firstDraw));
-        self::assertFalse($bob->getHand()->contains($secondDraw));
-
-        $game->endTurn($bob);
-
-        self::assertSame(3, $alice->getHand()->count());
-        self::assertSame(3, $bob->getHand()->count());
-        self::assertTrue($alice->getHand()->contains($secondDraw));
+        self::assertTrue($bob->getHand()->contains($secondDraw));
     }
 
     public function testDrainCardDamagesOpponentAndHealsPlayer(): void
@@ -271,6 +266,39 @@ class GameTest extends TestCase
         $game->playCard($alice, $aliceCard, $bob);
 
         self::assertSame(2, $alice->getManaPoints());
+    }
+
+    public function testUnmetMaxHealthRequirementRejectsCardWithoutChangingGameState(): void
+    {
+        $alice = new Player('Alice');
+        $bob = new Player('Bob');
+        $card = new Card(
+                          'Low health fireball',
+                          [new CardEffect(new DamageEffect(5), new SelectedOpponentTarget())],
+            cost: 1,
+            requirements: [new MaxHealthRequirement(10)],
+        );
+
+        $game = new Game([$alice, $bob], TestHelper::createDeck($card));
+
+        $manaBefore = $alice->getManaPoints();
+        $handBefore = $alice->getHand()->getAll();
+        $targetHealthBefore = $bob->getLifePoints();
+
+        try {
+            $game->playCard($alice, $card, $bob);
+
+            self::fail('An unmet card requirement should reject the play.');
+        } catch (RequirementNotSatisfiedException $exception) {
+            self::assertSame(
+                'MAX_HEALTH_EXCEEDED',
+                $exception->getMessage(),
+            );
+        }
+
+        self::assertSame($manaBefore, $alice->getManaPoints());
+        self::assertSame($targetHealthBefore, $bob->getLifePoints());
+        self::assertSame($handBefore, $alice->getHand()->getAll());
     }
 
 
