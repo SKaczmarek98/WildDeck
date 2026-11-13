@@ -205,7 +205,7 @@ class Game
     private function startTurn(): void
     {
        $this->drawCardFor($this->getCurrentPlayer());
-       $this->getCurrentPlayer()->manaRegeneration(Player::MAX_MANA_POINTS);
+       $this->getCurrentPlayer()->restoreManaToMax();
     }
 
     public function isEnded(): bool

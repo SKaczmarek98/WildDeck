@@ -10,7 +10,7 @@ use WildDeck\Game\Exception\NoManaToPlayCardException;
 
 class Player
 {
-    public const int MAX_MANA_POINTS = 3;
+    private const int MAX_MANA_POINTS = 3;
     private const int MAX_LIFE_POINTS = 20;
     private const int MIN_LIFE_POINTS = 0;
     private const int MIN_MANA_POINTS = 0;
@@ -92,7 +92,7 @@ class Player
         );
     }
 
-    public function manaRegeneration(int $amount): void
+    public function restoreMana(int $amount): void
     {
         if ($amount < 0) {
             throw new InvalidArgumentException();
@@ -102,6 +102,11 @@ class Player
             self::MAX_MANA_POINTS,
             $this->manaPoints + $amount,
         );
+    }
+
+    public function restoreManaToMax(): void
+    {
+        $this->restoreMana(self::MAX_MANA_POINTS);
     }
 
     public function isAlive(): bool
