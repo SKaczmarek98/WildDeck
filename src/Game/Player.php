@@ -7,6 +7,7 @@ namespace WildDeck\Game;
 use InvalidArgumentException;
 use WildDeck\Cards\CardCollection;
 use WildDeck\Game\Exception\NoManaToPlayCardException;
+use WildDeck\Status\StatusInterface;
 
 class Player
 {
@@ -21,6 +22,10 @@ class Player
 
     private int $lifePoints;
     private int $manaPoints;
+
+
+    /** @var StatusInterface[] */
+    private array $statuses = [];
 
 
     public function __construct(string $name)
@@ -112,6 +117,22 @@ class Player
     public function isAlive(): bool
     {
         return $this->lifePoints > 0;
+    }
+
+    public function addStatus(StatusInterface $status): void
+    {
+        $this->statuses[] = $status;
+    }
+
+    public function processStatues(): void
+    {
+        foreach ($this->statuses as $index => $status) {
+            $status->onTurnStart($this);
+
+            if ($status->isExpired()) {
+                unset($this->statuses[$index]);
+            }
+        }
     }
 
 }

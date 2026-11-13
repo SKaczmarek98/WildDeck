@@ -204,8 +204,11 @@ class Game
 
     private function startTurn(): void
     {
-       $this->drawCardFor($this->getCurrentPlayer());
-       $this->getCurrentPlayer()->restoreManaToMax();
+        $player = $this->getCurrentPlayer();
+
+        $this->drawCardFor($player);
+        $player->restoreManaToMax();
+        $player->processStatues();
     }
 
     public function isEnded(): bool
