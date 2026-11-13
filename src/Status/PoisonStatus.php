@@ -6,7 +6,7 @@ namespace WildDeck\Status;
 
 use WildDeck\Game\Player;
 
-final class PoisionStatus extends AbstractStatus
+final class PoisonStatus extends AbstractStatus
 {
     public function __construct(
         private int $damage,
