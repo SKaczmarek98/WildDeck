@@ -204,11 +204,25 @@ class Game
 
     private function startTurn(): void
     {
-        $player = $this->getCurrentPlayer();
+        while (true) {
+            $player = $this->getCurrentPlayer();
 
-        $this->drawCardFor($player);
-        $player->restoreManaToMax();
-        $player->processStatues();
+            $player->processStatues();
+            $this->drawCardFor($player);
+            $player->restoreManaToMax( );
+
+            $this->checkGameEnd();
+
+            if ($this->gameIsEnd) {
+                return;
+            }
+
+            if ($player->isAlive()) {
+                return;
+            }
+
+            $this->moveToNextAlivePlayer();
+        }
     }
 
     public function isEnded(): bool

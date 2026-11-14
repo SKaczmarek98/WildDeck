@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace WildDeck\Status;
 
+use InvalidArgumentException;
 use WildDeck\Game\Player;
 
 abstract class AbstractStatus implements StatusInterface
@@ -12,6 +13,11 @@ abstract class AbstractStatus implements StatusInterface
         private int $remainingTurns,
     )
     {
+        if ($remainingTurns <= 0) {
+            throw new InvalidArgumentException(
+                'Duration must be greater than zero.'
+            );
+        }
     }
 
     final public function onTurnStart(Player $player): void

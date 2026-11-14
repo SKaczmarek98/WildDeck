@@ -26,6 +26,14 @@ final class SelectedOpponentTarget implements TargetResolverInterface
             throw new InvalidTargetException();
         }
 
+        if (!in_array(
+            $selectedTarget,
+            $game->getOpponentsOf($source),
+            true
+        )) {
+            throw new InvalidTargetException();
+        }
+
         return [$selectedTarget];
     }
 }
