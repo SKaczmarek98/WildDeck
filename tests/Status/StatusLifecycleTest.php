@@ -10,7 +10,7 @@ use WildDeck\Cards\CardEffect;
 use WildDeck\Effect\ApplyStatusEffect;
 use WildDeck\Game\Game;
 use WildDeck\Game\Player;
-use WildDeck\Status\PoisonStatus;
+use WildDeck\Status\BurnStatus;
 use WildDeck\Status\RegenerationStatus;
 use WildDeck\Target\SelectedOpponentTarget;
 use WildDeck\Target\SelfTargetResolver;
@@ -23,7 +23,7 @@ final class StatusLifecycleTest extends TestCase
         $alice = new Player('Alice');
         $bob = new Player('Bob');
         $card = new Card('Poison', [
-            new CardEffect(new ApplyStatusEffect(new PoisonStatus(2, 3)), new SelectedOpponentTarget()),
+            new CardEffect(new ApplyStatusEffect(new BurnStatus(2, 3)), new SelectedOpponentTarget()),
         ]);
         $game = new Game([$alice, $bob], TestHelper::createDeck($card));
 
@@ -53,7 +53,7 @@ final class StatusLifecycleTest extends TestCase
         $alice = new Player('Alice');
         $bob = new Player('Bob');
         $card = new Card('Poison', [
-            new CardEffect(new ApplyStatusEffect(new PoisonStatus(2, 3)), new SelectedOpponentTarget()),
+            new CardEffect(new ApplyStatusEffect(new BurnStatus(2, 3)), new SelectedOpponentTarget()),
         ]);
         $game = new Game([$alice, $bob], TestHelper::createDeck($card));
 

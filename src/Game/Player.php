@@ -121,6 +121,12 @@ class Player
 
     public function addStatus(StatusInterface $status): void
     {
+        foreach ($this->statuses as $existingStatus) {
+            if ($existingStatus->tryStack($status)) {
+                return;
+            }
+        }
+
         $this->statuses[] = $status;
     }
 

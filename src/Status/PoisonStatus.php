@@ -9,8 +9,7 @@ use WildDeck\Game\Player;
 final class PoisonStatus extends AbstractStatus
 {
     public function __construct(
-        private int $damage,
-        int         $duration,
+        int $duration,
     )
     {
         parent::__construct($duration);
@@ -18,6 +17,6 @@ final class PoisonStatus extends AbstractStatus
 
     protected function applyEffect(Player $player): void
     {
-        $player->takeDamage($this->damage);
+        $player->takeDamage($this->remainingTurns);
     }
 }

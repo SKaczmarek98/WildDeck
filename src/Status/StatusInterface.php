@@ -9,4 +9,7 @@ interface StatusInterface
     public function onTurnStart(Player $player): void;
 
     public function isExpired(): bool;
+
+    public function tryStack(StatusInterface $status): bool;
+
 }

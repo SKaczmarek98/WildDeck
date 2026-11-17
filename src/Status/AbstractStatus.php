@@ -10,7 +10,7 @@ use WildDeck\Game\Player;
 abstract class AbstractStatus implements StatusInterface
 {
     public function __construct(
-        private int $remainingTurns,
+        protected int $remainingTurns,
     )
     {
         if ($remainingTurns <= 0) {
@@ -20,17 +20,28 @@ abstract class AbstractStatus implements StatusInterface
         }
     }
 
+    abstract protected function applyEffect(Player $player): void;
+
     final public function onTurnStart(Player $player): void
     {
         $this->applyEffect($player);
         $this->remainingTurns--;
     }
 
-    abstract protected function applyEffect(Player $player): void;
-
-    final public function isExpired(): bool
+    public function isExpired(): bool
     {
         return $this->remainingTurns <= 0;
+    }
+
+    public function tryStack(StatusInterface $status): bool
+    {
+        if (!$status instanceof self) {
+            return false;
+        }
+
+        $this->remainingTurns += $status->remainingTurns;
+
+        return true;
     }
 
 }
