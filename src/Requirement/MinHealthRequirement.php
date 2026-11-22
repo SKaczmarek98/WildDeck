@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace WildDeck\Requirement;
 
+use WildDeck\Combatant\Player;
 use WildDeck\Game\Game;
-use WildDeck\Game\Player;
 
 final readonly class MinHealthRequirement implements RequirementInterface
 {

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace WildDeck\Status;
 
-use WildDeck\Game\Player;
+use WildDeck\Combatant\Combatant;
 
 final class BurnStatus extends AbstractStatus
 {
@@ -16,7 +16,7 @@ final class BurnStatus extends AbstractStatus
         parent::__construct($duration);
     }
 
-    protected function applyEffect(Player $player): void
+    protected function applyEffect(Combatant $player): void
     {
         $player->takeDamage($this->damage);
     }

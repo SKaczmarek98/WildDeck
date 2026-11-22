@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace WildDeck\Effect;
 
+use WildDeck\Combatant\Combatant;
 use WildDeck\Game\Game;
-use WildDeck\Game\Player;
 
 final class HealEffect extends AbstractEffect
 {
@@ -15,7 +15,7 @@ final class HealEffect extends AbstractEffect
     {
     }
 
-    protected function applyToTarget(Game $game, Player $target): void
+    protected function applyToTarget(Game $game, Combatant $target): void
     {
         $target->heal($this->health);
     }

@@ -4,19 +4,22 @@ declare(strict_types=1);
 
 namespace WildDeck\Effect;
 
+use WildDeck\Combatant\Combatant;
 use WildDeck\Game\Game;
-use WildDeck\Game\Player;
 
 final class DamageEffect extends AbstractEffect
 {
     public function __construct(
         private int $amount,
-    ) {}
+    )
+    {
+    }
 
     protected function applyToTarget(
-        Game $game,
-        Player $target
-    ): void {
+        Game      $game,
+        Combatant $target
+    ): void
+    {
         $target->takeDamage($this->amount);
     }
 

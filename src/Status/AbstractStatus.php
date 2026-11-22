@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace WildDeck\Status;
 
 use InvalidArgumentException;
-use WildDeck\Game\Player;
+use WildDeck\Combatant\Combatant;
 
 abstract class AbstractStatus implements StatusInterface
 {
@@ -20,13 +20,13 @@ abstract class AbstractStatus implements StatusInterface
         }
     }
 
-    abstract protected function applyEffect(Player $player): void;
-
-    final public function onTurnStart(Player $player): void
+    final public function onTurnStart(Combatant $player): void
     {
         $this->applyEffect($player);
         $this->remainingTurns--;
     }
+
+    abstract protected function applyEffect(Combatant $player): void;
 
     public function isExpired(): bool
     {
@@ -35,7 +35,7 @@ abstract class AbstractStatus implements StatusInterface
 
     public function tryStack(StatusInterface $status): bool
     {
-        if (!$status instanceof self) {
+        if ($status::class !== static::class) {
             return false;
         }
 

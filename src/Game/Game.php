@@ -7,6 +7,7 @@ namespace WildDeck\Game;
 use WildDeck\Cards\Card;
 use WildDeck\Cards\CardCollection;
 use WildDeck\Cards\Deck;
+use WildDeck\Combatant\Player;
 use WildDeck\Game\Exception\CardNotInHandException;
 use WildDeck\Game\Exception\GameAlreadyEndedException;
 use WildDeck\Game\Exception\NoAlivePlayerFoundException;
@@ -78,6 +79,80 @@ class Game
 
     }
 
+    private function startTurn(): void
+    {
+        while (true) {
+            $player = $this->getCurrentPlayer();
+
+            $player->processStatues();
+            $this->drawCardFor($player);
+            $player->restoreManaToMax();
+
+            $this->checkGameEnd();
+
+            if ($this->gameIsEnd) {
+                return;
+            }
+
+            if ($player->isAlive()) {
+                return;
+            }
+
+            $this->moveToNextAlivePlayer();
+        }
+    }
+
+    private function getCurrentPlayer(): Player
+    {
+        return $this->players[$this->currentPlayerIndex];
+    }
+
+    public function drawCardFor(
+        Player $player
+    ): void
+    {
+        $card = $this->drawPile->takeFirst();
+
+        if ($card === null) {
+            return;
+        }
+
+        $player->getHand()->add($card);
+    }
+
+    private function checkGameEnd(): void
+    {
+        $alivePlayers = array_values(
+            array_filter(
+                $this->players,
+                static fn(Player $player): bool => $player->isAlive(),
+            )
+        );
+
+        if (count($alivePlayers) > 1) {
+            return;
+        }
+
+        $this->gameIsEnd = true;
+        $this->winner = $alivePlayers[0] ?? null;
+    }
+
+    private function moveToNextAlivePlayer(): void
+    {
+        $playersCount = count($this->players);
+
+        for ($i = 0; $i < $playersCount; $i++) {
+            $this->currentPlayerIndex
+                = ($this->currentPlayerIndex + 1) % $playersCount;
+
+            if ($this->getCurrentPlayer()->isAlive()) {
+                return;
+            }
+        }
+
+        throw new NoAlivePlayerFoundException();
+    }
+
     public function playCard(
         Player  $player,
         Card    $card,
@@ -134,11 +209,6 @@ class Game
 
     }
 
-    private function getCurrentPlayer(): Player
-    {
-        return $this->players[$this->currentPlayerIndex];
-    }
-
     private function canPlayCard(
         Player $player,
         Card   $card,
@@ -151,23 +221,6 @@ class Game
                 throw new RequirementNotSatisfiedException($result->reason ?? 'CARD_REQUIREMENT_NOT_SATISFIED');
             }
         }
-    }
-
-    private function checkGameEnd(): void
-    {
-        $alivePlayers = array_values(
-            array_filter(
-                $this->players,
-                static fn(Player $player): bool => $player->isAlive(),
-            )
-        );
-
-        if (count($alivePlayers) > 1) {
-            return;
-        }
-
-        $this->gameIsEnd = true;
-        $this->winner = $alivePlayers[0] ?? null;
     }
 
     public function endTurn(
@@ -186,45 +239,6 @@ class Game
         $this->startTurn();
     }
 
-    private function moveToNextAlivePlayer(): void
-    {
-        $playersCount = count($this->players);
-
-        for ($i = 0; $i < $playersCount; $i++) {
-            $this->currentPlayerIndex
-                = ($this->currentPlayerIndex + 1) % $playersCount;
-
-            if ($this->getCurrentPlayer()->isAlive()) {
-                return;
-            }
-        }
-
-        throw new NoAlivePlayerFoundException();
-    }
-
-    private function startTurn(): void
-    {
-        while (true) {
-            $player = $this->getCurrentPlayer();
-
-            $player->processStatues();
-            $this->drawCardFor($player);
-            $player->restoreManaToMax( );
-
-            $this->checkGameEnd();
-
-            if ($this->gameIsEnd) {
-                return;
-            }
-
-            if ($player->isAlive()) {
-                return;
-            }
-
-            $this->moveToNextAlivePlayer();
-        }
-    }
-
     public function isEnded(): bool
     {
         return $this->gameIsEnd;
@@ -233,19 +247,6 @@ class Game
     public function getWinner(): ?Player
     {
         return $this->winner;
-    }
-
-    public function drawCardFor(
-        Player $player
-    ): void
-    {
-        $card = $this->drawPile->takeFirst();
-
-        if ($card === null) {
-            return;
-        }
-
-        $player->getHand()->add($card);
     }
 
     /**

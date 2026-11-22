@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace WildDeck\Tests\Requirement;
 
 use PHPUnit\Framework\TestCase;
+use WildDeck\Combatant\Player;
 use WildDeck\Game\Game;
-use WildDeck\Game\Player;
 use WildDeck\Requirement\MinHealthRequirement;
 use WildDeck\Tests\TestHelper;
 

@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace WildDeck\Effect;
 
+use WildDeck\Combatant\Combatant;
 use WildDeck\Game\Game;
-use WildDeck\Game\Player;
 
 abstract class AbstractEffect implements EffectInterface
 {
     /**
-     * @param Player[] $targets
+     * @param Combatant[] $targets
      */
     final public function apply(Game $game, array $targets): void
     {
@@ -20,8 +20,8 @@ abstract class AbstractEffect implements EffectInterface
     }
 
     abstract protected function applyToTarget(
-        Game $game,
-        Player $target
+        Game      $game,
+        Combatant $target
     ): void;
 
 }

@@ -7,10 +7,11 @@ namespace WildDeck\Tests\Status;
 use PHPUnit\Framework\TestCase;
 use WildDeck\Cards\Card;
 use WildDeck\Cards\CardEffect;
+use WildDeck\Combatant\Player;
 use WildDeck\Effect\ApplyStatusEffect;
 use WildDeck\Game\Game;
-use WildDeck\Game\Player;
 use WildDeck\Status\BurnStatus;
+use WildDeck\Status\PoisonStatus;
 use WildDeck\Status\RegenerationStatus;
 use WildDeck\Target\SelectedOpponentTarget;
 use WildDeck\Target\SelfTargetResolver;
@@ -18,11 +19,11 @@ use WildDeck\Tests\TestHelper;
 
 final class StatusLifecycleTest extends TestCase
 {
-    public function testPoisonActsOnlyAtStartOfSelectedTargetsTurn(): void
+    public function testBurnActsOnlyAtStartOfSelectedTargetsTurn(): void
     {
         $alice = new Player('Alice');
         $bob = new Player('Bob');
-        $card = new Card('Poison', [
+        $card = new Card('Burn', [
             new CardEffect(new ApplyStatusEffect(new BurnStatus(2, 3)), new SelectedOpponentTarget()),
         ]);
         $game = new Game([$alice, $bob], TestHelper::createDeck($card));
@@ -48,11 +49,11 @@ final class StatusLifecycleTest extends TestCase
         self::assertSame(20, $alice->getLifePoints());
     }
 
-    public function testPoisonActsExactlyForItsDurationAndStopsDamaging(): void
+    public function testBurnActsExactlyForItsDurationAndStopsDamaging(): void
     {
         $alice = new Player('Alice');
         $bob = new Player('Bob');
-        $card = new Card('Poison', [
+        $card = new Card('Burn', [
             new CardEffect(new ApplyStatusEffect(new BurnStatus(2, 3)), new SelectedOpponentTarget()),
         ]);
         $game = new Game([$alice, $bob], TestHelper::createDeck($card));
@@ -70,6 +71,89 @@ final class StatusLifecycleTest extends TestCase
 
             self::assertSame($expectedHealth, $bob->getLifePoints());
             self::assertSame(20, $alice->getLifePoints());
+        }
+    }
+
+    public function testPoisonDealsDecreasingDamageUntilItExpires(): void
+    {
+        $alice = new Player('Alice');
+        $bob = new Player('Bob');
+        $game = new Game([$alice, $bob], TestHelper::createDeck());
+
+        $bob->addStatus(new PoisonStatus(3));
+
+        self::assertSame(20, $bob->getLifePoints());
+
+        foreach ([17, 15, 14, 14] as $turn => $expectedHealth) {
+            $game->endTurn($alice);
+
+            self::assertSame($expectedHealth, $bob->getLifePoints(), 'Target turn ' . ($turn + 1));
+
+            $game->endTurn($bob);
+
+            self::assertSame($expectedHealth, $bob->getLifePoints());
+        }
+    }
+
+    public function testReapplyingPoisonAddsItsDurationToTheExistingPoison(): void
+    {
+        $alice = new Player('Alice');
+        $bob = new Player('Bob');
+        $game = new Game([$alice, $bob], TestHelper::createDeck());
+
+        $bob->addStatus(new PoisonStatus(3));
+        $bob->addStatus(new PoisonStatus(2));
+
+        self::assertSame(20, $bob->getLifePoints());
+
+        foreach ([15, 11, 8, 6, 5, 5] as $turn => $expectedHealth) {
+            $game->endTurn($alice);
+
+            self::assertSame($expectedHealth, $bob->getLifePoints(), 'Target turn ' . ($turn + 1));
+
+            $game->endTurn($bob);
+        }
+    }
+
+    public function testBurnAndPoisonApplyAndExpireIndependently(): void
+    {
+        $alice = new Player('Alice');
+        $bob = new Player('Bob');
+        $game = new Game([$alice, $bob], TestHelper::createDeck());
+
+        $bob->addStatus(new BurnStatus(2, 2));
+        $bob->addStatus(new PoisonStatus(3));
+
+        foreach ([15, 11, 10, 10] as $turn => $expectedHealth) {
+            $game->endTurn($alice);
+
+            self::assertSame($expectedHealth, $bob->getLifePoints(), 'Target turn ' . ($turn + 1));
+
+            $game->endTurn($bob);
+        }
+    }
+
+    public function testReapplyingBurnExtendsDurationAndKeepsOriginalDamage(): void
+    {
+        $alice = new Player('Alice');
+        $bob = new Player('Bob');
+        $game = new Game([$alice, $bob], TestHelper::createDeck());
+
+        $bob->addStatus(new BurnStatus(2, 3));
+        $game->endTurn($alice);
+        self::assertSame(18, $bob->getLifePoints());
+        $game->endTurn($bob);
+
+        $bob->addStatus(new BurnStatus(5, 2));
+
+        self::assertSame(18, $bob->getLifePoints());
+
+        foreach ([16, 14, 12, 10, 10] as $turn => $expectedHealth) {
+            $game->endTurn($alice);
+
+            self::assertSame($expectedHealth, $bob->getLifePoints(), 'Target turn ' . ($turn + 2));
+
+            $game->endTurn($bob);
         }
     }
 

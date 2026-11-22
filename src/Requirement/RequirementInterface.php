@@ -2,8 +2,8 @@
 
 namespace WildDeck\Requirement;
 
+use WildDeck\Combatant\Player;
 use WildDeck\Game\Game;
-use WildDeck\Game\Player;
 
 interface RequirementInterface
 {

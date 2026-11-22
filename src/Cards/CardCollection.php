@@ -12,7 +12,7 @@ class CardCollection
      * @param Card[] $cards
      */
     public function __construct(
-        private array $cards = [],
+        protected array $cards = [],
     )
     {
     }
