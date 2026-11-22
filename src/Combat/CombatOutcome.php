@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace WildDeck\Game;
+namespace WildDeck\Combat;
 
 enum CombatOutcome
 {

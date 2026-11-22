@@ -12,11 +12,11 @@ use WildDeck\Combatant\Player;
 use WildDeck\Effect\DamageEffect;
 use WildDeck\Effect\DrawEffect;
 use WildDeck\Effect\HealEffect;
-use WildDeck\Game\Exception\NoManaToPlayCardException;
-use WildDeck\Game\Exception\NotEnoughCardsToStartGameException;
-use WildDeck\Game\Exception\NotPlayerTurnException;
-use WildDeck\Game\Exception\RequirementNotSatisfiedException;
-use WildDeck\Game\Game;
+use WildDeck\Combat\Exception\NoManaToPlayCardException;
+use WildDeck\Combat\Exception\NotEnoughCardsToStartCombatException;
+use WildDeck\Combat\Exception\NotPlayerTurnException;
+use WildDeck\Combat\Exception\RequirementNotSatisfiedException;
+use WildDeck\Combat\Game;
 use WildDeck\Requirement\MaxHealthRequirement;
 use WildDeck\Target\SelectedOpponentTarget;
 use WildDeck\Target\SelfTargetResolver;
@@ -34,7 +34,7 @@ class GameTest extends TestCase
                              TestHelper::createFireballCard(),
                          ]);
 
-        $this->expectException(NotEnoughCardsToStartGameException::class);
+        $this->expectException(NotEnoughCardsToStartCombatException::class);
         new Game([$alice, $bob], $deck);
     }
 

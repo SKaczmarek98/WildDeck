@@ -6,7 +6,7 @@ namespace WildDeck\Combatant;
 
 use InvalidArgumentException;
 use WildDeck\Cards\CardCollection;
-use WildDeck\Game\Exception\NoManaToPlayCardException;
+use WildDeck\Combat\Exception\NoManaToPlayCardException;
 
 class Player extends AbstractCombatant
 {

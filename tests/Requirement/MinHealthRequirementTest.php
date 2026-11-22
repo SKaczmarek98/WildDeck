@@ -6,7 +6,7 @@ namespace WildDeck\Tests\Requirement;
 
 use PHPUnit\Framework\TestCase;
 use WildDeck\Combatant\Player;
-use WildDeck\Game\Game;
+use WildDeck\Combat\Game;
 use WildDeck\Requirement\MinHealthRequirement;
 use WildDeck\Tests\TestHelper;
 

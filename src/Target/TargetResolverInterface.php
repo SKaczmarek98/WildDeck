@@ -3,7 +3,7 @@
 namespace WildDeck\Target;
 
 use WildDeck\Combatant\CombatantInterface;
-use WildDeck\Game\CombatInterface;
+use WildDeck\Combat\CombatInterface;
 
 interface TargetResolverInterface
 {

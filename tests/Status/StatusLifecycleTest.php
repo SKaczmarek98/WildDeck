@@ -9,7 +9,7 @@ use WildDeck\Cards\Card;
 use WildDeck\Cards\CardEffect;
 use WildDeck\Combatant\Player;
 use WildDeck\Effect\ApplyStatusEffect;
-use WildDeck\Game\Game;
+use WildDeck\Combat\Game;
 use WildDeck\Status\BurnStatus;
 use WildDeck\Status\PoisonStatus;
 use WildDeck\Status\RegenerationStatus;

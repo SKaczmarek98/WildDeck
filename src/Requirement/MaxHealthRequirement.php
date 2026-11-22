@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace WildDeck\Requirement;
 
+use WildDeck\Combat\CombatInterface;
 use WildDeck\Combatant\Player;
-use WildDeck\Game\Game;
 
 final readonly class MaxHealthRequirement implements RequirementInterface
 {
@@ -16,8 +16,8 @@ final readonly class MaxHealthRequirement implements RequirementInterface
     }
 
     public function check(
-        Game   $game,
-        Player $player,
+        CombatInterface $combat,
+        Player          $player,
     ): RequirementResult {
         if ($player->getLifePoints() <= $this->maxHealth) {
             return new RequirementResult(true);

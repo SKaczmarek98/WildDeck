@@ -19,13 +19,13 @@ abstract class AbstractStatus implements StatusInterface
         }
     }
 
-    final public function onTurnStart(CombatantInterface $player): void
+    final public function onTurnStart(CombatantInterface $combatant): void
     {
-        $this->applyEffect($player);
+        $this->applyEffect($combatant);
         $this->remainingTurns--;
     }
 
-    abstract protected function applyEffect(CombatantInterface $player): void;
+    abstract protected function applyEffect(CombatantInterface $combatant): void;
 
     public function isExpired(): bool
     {

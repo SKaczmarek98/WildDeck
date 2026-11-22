@@ -2,26 +2,26 @@
 
 declare(strict_types=1);
 
-namespace WildDeck\Game;
+namespace WildDeck\Combat;
 
 use WildDeck\Cards\Card;
 use WildDeck\Cards\CardCollection;
 use WildDeck\Cards\Deck;
+use WildDeck\Combat\Exception\CardNotInHandException;
+use WildDeck\Combat\Exception\CombatantNotInCombatException;
+use WildDeck\Combat\Exception\CombatAlreadyEndedException;
+use WildDeck\Combat\Exception\NoAliveCombatantFoundException;
+use WildDeck\Combat\Exception\NoManaToPlayCardException;
+use WildDeck\Combat\Exception\NotEnoughCardsToStartCombatException;
+use WildDeck\Combat\Exception\NotPlayerTurnException;
+use WildDeck\Combat\Exception\RequirementNotSatisfiedException;
 use WildDeck\Combatant\CombatantInterface;
 use WildDeck\Combatant\Enemy;
 use WildDeck\Combatant\Player;
-use WildDeck\Game\Exception\CardNotInHandException;
-use WildDeck\Game\Exception\CombatantNotInCombatException;
-use WildDeck\Game\Exception\GameAlreadyEndedException;
-use WildDeck\Game\Exception\NoAliveCombatantFoundException;
-use WildDeck\Game\Exception\NoManaToPlayCardException;
-use WildDeck\Game\Exception\NotEnoughCardsToStartGameException;
-use WildDeck\Game\Exception\NotPlayerTurnException;
-use WildDeck\Game\Exception\RequirementNotSatisfiedException;
 
 class Combat implements CombatInterface
 {
-    private const int CARD_PER_PLAYER = 2;
+    private const int STARTING_HAND_SIZE = 2;
 
     /**
      * @var Enemy[]
@@ -40,7 +40,7 @@ class Combat implements CombatInterface
 
 
     /**
-     * @throws NotEnoughCardsToStartGameException
+     * @throws NotEnoughCardsToStartCombatException
      * @var Player[]
      */
     public function __construct(
@@ -58,18 +58,18 @@ class Combat implements CombatInterface
         );
         $this->currentCombatantIndex = 0;
 
-        $this->preapareCards($deck);
+        $this->prepareCards($deck);
         $this->startCurrentTurn();
     }
 
     /**
-     * @throws NotEnoughCardsToStartGameException
+     * @throws NotEnoughCardsToStartCombatException
      */
-    private function preapareCards(
+    private function prepareCards(
         Deck $deck
     ): void {
-        if ($deck->count() < self::CARD_PER_PLAYER) {
-            throw new NotEnoughCardsToStartGameException();
+        if ($deck->count() < self::STARTING_HAND_SIZE) {
+            throw new NotEnoughCardsToStartCombatException();
         }
 
         $deck->shuffle();
@@ -78,7 +78,7 @@ class Combat implements CombatInterface
             $this->drawPile->add($card);
         }
 
-        for ($i = 0; $i < self::CARD_PER_PLAYER; $i++) {
+        for ($i = 0; $i < self::STARTING_HAND_SIZE; $i++) {
             $this->player->getHand()->add(
                 $this->drawPile->takeFirst()
             );
@@ -87,22 +87,32 @@ class Combat implements CombatInterface
 
     private function startCurrentTurn(): void
     {
-        while (true) {
+        while (!$this->isEnded()) {
             $combatant = $this->getCurrentCombatant();
+
             $combatant->processStatuses();
-
-            if ($combatant instanceof Player) {
-                $this->drawCardFor($combatant);
-                $combatant->restoreManaToMax();
-            }
-
-            $this->checkGameEnd();
+            $this->checkCombatEnd();
 
             if ($this->isEnded()) {
                 return;
             }
 
-            if ($combatant->isAlive()) {
+            if (!$combatant->isAlive()) {
+                $this->moveToNextAliveCombatant();
+
+                continue;
+            }
+
+            if ($combatant instanceof Player) {
+                $this->drawCardFor($combatant);
+                $combatant->restoreManaToMax();
+
+                return;
+            }
+
+            $this->checkCombatEnd();
+
+            if ($this->isEnded()) {
                 return;
             }
 
@@ -127,10 +137,10 @@ class Combat implements CombatInterface
         $player->getHand()->add($card);
     }
 
-    private function checkGameEnd(): void
+    private function checkCombatEnd(): void
     {
         if (!$this->player->isAlive()) {
-            $this->outcome = CombatOutcome::VICTORY;
+            $this->outcome = CombatOutcome::DEFEAT;
 
             return;
         }
@@ -141,7 +151,7 @@ class Combat implements CombatInterface
             }
         }
 
-        $this->outcome = CombatOutcome::DEFEAT;
+        $this->outcome = CombatOutcome::VICTORY;
     }
 
     public function isEnded(): bool
@@ -173,12 +183,12 @@ class Combat implements CombatInterface
         $this->validatePlayCard($player, $card);
 
         /**
-         * @var ResolvedEffect[] $preparedEffects
+         * @var ResolvedEffect[] $resolvedEffects
          */
-        $preparedEffects = [];
+        $resolvedEffects = [];
 
         foreach ($card->getEffects() as $effect) {
-            $preparedEffects[] = new ResolvedEffect(
+            $resolvedEffects[] = new ResolvedEffect(
                 $effect->effect,
                 $effect->target->resolve($this, $player, $target)
             );
@@ -186,11 +196,11 @@ class Combat implements CombatInterface
 
         $player->takeMana($card->getCost());
 
-        foreach ($preparedEffects as $resolvedEffect) {
+        foreach ($resolvedEffects as $resolvedEffect) {
             $resolvedEffect->effect->apply($this, $resolvedEffect->targets);
         }
 
-        $this->checkGameEnd();
+        $this->checkCombatEnd();
 
         $this->discardPile->add($player->getHand()->take($card));
     }
@@ -200,7 +210,7 @@ class Combat implements CombatInterface
         Card   $card
     ): void {
         if ($this->isEnded()) {
-            throw new GameAlreadyEndedException();
+            throw new CombatAlreadyEndedException();
         }
 
         if ($this->getCurrentCombatant() !== $player) {
@@ -235,7 +245,7 @@ class Combat implements CombatInterface
         Player $player
     ): void {
         if ($this->isEnded()) {
-            throw new GameAlreadyEndedException();
+            throw new CombatAlreadyEndedException();
         }
 
         if ($this->getCurrentCombatant() !== $player) {
@@ -252,7 +262,7 @@ class Combat implements CombatInterface
     }
 
     /**
-     * @return Player[]
+     * @return CombatantInterface[]
      */
     public function getOpponentsOf(
         CombatantInterface $combatant
@@ -273,11 +283,4 @@ class Combat implements CombatInterface
         throw new CombatantNotInCombatException();
     }
 
-    private function validatePlayerInGame(
-        Player $player
-    ): void {
-        if (!in_array($player, $this->enemies, true)) {
-            throw new CombatantNotInCombatException();
-        }
-    }
 }

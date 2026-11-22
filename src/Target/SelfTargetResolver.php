@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace WildDeck\Target;
 
 use WildDeck\Combatant\CombatantInterface;
-use WildDeck\Game\CombatInterface;
+use WildDeck\Combat\CombatInterface;
 
 final class SelfTargetResolver implements TargetResolverInterface
 {

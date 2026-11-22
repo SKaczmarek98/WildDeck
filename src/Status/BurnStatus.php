@@ -15,9 +15,9 @@ final class BurnStatus extends AbstractStatus
         parent::__construct($duration);
     }
 
-    protected function applyEffect(CombatantInterface $player): void
+    protected function applyEffect(CombatantInterface $combatant): void
     {
-        $player->takeDamage($this->damage);
+        $combatant->takeDamage($this->damage);
     }
 
 }

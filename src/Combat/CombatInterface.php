@@ -1,6 +1,6 @@
 <?php
 
-namespace WildDeck\Game;
+namespace WildDeck\Combat;
 
 use WildDeck\Combatant\CombatantInterface;
 use WildDeck\Combatant\Player;

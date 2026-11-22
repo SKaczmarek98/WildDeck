@@ -2,13 +2,13 @@
 
 namespace WildDeck\Requirement;
 
+use WildDeck\Combat\CombatInterface;
 use WildDeck\Combatant\Player;
-use WildDeck\Game\Game;
 
 interface RequirementInterface
 {
     public function check(
-        Game   $game,
-        Player $player,
+        CombatInterface $combat,
+        Player          $player,
     ): RequirementResult;
 }
