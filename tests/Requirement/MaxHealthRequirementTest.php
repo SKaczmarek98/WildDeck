@@ -5,26 +5,27 @@ declare(strict_types=1);
 namespace WildDeck\Tests\Requirement;
 
 use PHPUnit\Framework\TestCase;
+use WildDeck\Combat\Combat;
+use WildDeck\Combatant\Enemy;
 use WildDeck\Combatant\Player;
-use WildDeck\Combat\Game;
 use WildDeck\Requirement\MaxHealthRequirement;
 use WildDeck\Tests\TestHelper;
 
 class MaxHealthRequirementTest extends TestCase
 {
-    public function testMaxHealthRequirementIsSatisfiedWhenPlayerHasEnoughLowHp(): void
+    public function testMaxHealthRequirementIsSatisfiedAtTheHealthThreshold(): void
     {
-        $alice = new Player('Alice');
-        $bob = new Player('Bob');
+        $player = new Player('Hero');
+        $enemy = new Enemy('Enemy', 20, 0);
 
-        $alice->takeDamage(10);
+        $player->takeDamage(10);
 
         $requirement = new MaxHealthRequirement(10);
-        $game = new Game([$alice, $bob], TestHelper::createDeck());
+        $combat = new Combat($player, [$enemy], TestHelper::createDeck());
 
         $result = $requirement->check(
-            $game,
-            $alice,
+            $combat,
+            $player,
         );
 
         self::assertTrue($result->satisfied);
@@ -33,20 +34,18 @@ class MaxHealthRequirementTest extends TestCase
 
     public function testMaxHealthRequirementReturnsReasonWhenPlayerHasTooMuchHp(): void
     {
-        $alice = new Player('Alice');
-        $bob = new Player('Bob');
+        $player = new Player('Hero');
+        $enemy = new Enemy('Enemy', 20, 0);
 
         $requirement = new MaxHealthRequirement(10);
-        $game = new Game([$alice, $bob], TestHelper::createDeck());
-
+        $combat = new Combat($player, [$enemy], TestHelper::createDeck());
 
         $result = $requirement->check(
-            $game,
-            $alice,
+            $combat,
+            $player,
         );
 
         self::assertFalse($result->satisfied);
         self::assertSame('MAX_HEALTH_EXCEEDED', $result->reason);
     }
-    
 }

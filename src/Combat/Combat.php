@@ -110,19 +110,27 @@ class Combat implements CombatInterface
                 return;
             }
 
-            $this->checkCombatEnd();
+            if ($combatant instanceof Enemy) {
+                $this->performEnemyTurn($combatant);
+                $this->checkCombatEnd();
 
-            if ($this->isEnded()) {
-                return;
+                if ($this->isEnded()) {
+                    return;
+                }
+
+                $this->moveToNextAliveCombatant();
             }
-
-            $this->moveToNextAliveCombatant();
         }
     }
 
     private function getCurrentCombatant(): CombatantInterface
     {
         return $this->combatants[$this->currentCombatantIndex];
+    }
+
+    private function performEnemyTurn(Enemy $enemy): void
+    {
+        $enemy->attack($this->player);
     }
 
     public function drawCardFor(
