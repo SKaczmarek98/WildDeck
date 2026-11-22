@@ -7,19 +7,19 @@ namespace WildDeck\Game;
 use WildDeck\Cards\Card;
 use WildDeck\Cards\CardCollection;
 use WildDeck\Cards\Deck;
-use WildDeck\Combatant\Combatant;
+use WildDeck\Combatant\CombatantInterface;
 use WildDeck\Combatant\Enemy;
 use WildDeck\Combatant\Player;
 use WildDeck\Game\Exception\CardNotInHandException;
+use WildDeck\Game\Exception\CombatantNotInCombatException;
 use WildDeck\Game\Exception\GameAlreadyEndedException;
-use WildDeck\Game\Exception\NoAlivePlayerFoundException;
+use WildDeck\Game\Exception\NoAliveCombatantFoundException;
 use WildDeck\Game\Exception\NoManaToPlayCardException;
 use WildDeck\Game\Exception\NotEnoughCardsToStartGameException;
 use WildDeck\Game\Exception\NotPlayerTurnException;
-use WildDeck\Game\Exception\PlayerNotInGameException;
 use WildDeck\Game\Exception\RequirementNotSatisfiedException;
 
-class Combat
+class Combat implements CombatInterface
 {
     private const int CARD_PER_PLAYER = 2;
 
@@ -30,15 +30,13 @@ class Combat
     private Player $player;
 
     /**
-     * @var Combatant[]
+     * @var CombatantInterface[]
      */
     private array $combatants;
     private int $currentCombatantIndex = 0;
-
-    private bool $gameIsEnd;
     private CardCollection $drawPile;
     private CardCollection $discardPile;
-    private ?CombatResult $outcome = null;
+    private ?CombatOutcome $outcome = null;
 
 
     /**
@@ -54,12 +52,14 @@ class Combat
         $this->discardPile = new CardCollection();
         $this->player = $player;
         $this->enemies = $enemies;
-        $this->combatants = [$player] + $enemies;
+        $this->combatants = array_merge(
+            [$player],
+            $enemies,
+        );
         $this->currentCombatantIndex = 0;
-        $this->gameIsEnd = false;
 
         $this->preapareCards($deck);
-        $this->startTurn();
+        $this->startCurrentTurn();
     }
 
     /**
@@ -85,11 +85,11 @@ class Combat
         }
     }
 
-    private function startTurn(): void
+    private function startCurrentTurn(): void
     {
         while (true) {
             $combatant = $this->getCurrentCombatant();
-            $combatant->processStatues();
+            $combatant->processStatuses();
 
             if ($combatant instanceof Player) {
                 $this->drawCardFor($combatant);
@@ -98,7 +98,7 @@ class Combat
 
             $this->checkGameEnd();
 
-            if ($this->gameIsEnd) {
+            if ($this->isEnded()) {
                 return;
             }
 
@@ -106,11 +106,11 @@ class Combat
                 return;
             }
 
-            $this->moveToNextAlivePlayer();
+            $this->moveToNextAliveCombatant();
         }
     }
 
-    private function getCurrentCombatant(): Combatant
+    private function getCurrentCombatant(): CombatantInterface
     {
         return $this->combatants[$this->currentCombatantIndex];
     }
@@ -130,7 +130,7 @@ class Combat
     private function checkGameEnd(): void
     {
         if (!$this->player->isAlive()) {
-            $this->outcome = CombatResult::ENEMY_WIN;
+            $this->outcome = CombatOutcome::VICTORY;
 
             return;
         }
@@ -141,11 +141,15 @@ class Combat
             }
         }
 
-        $this->outcome = CombatResult::PLAYER_WIN;
+        $this->outcome = CombatOutcome::DEFEAT;
     }
 
+    public function isEnded(): bool
+    {
+        return $this->outcome !== null;
+    }
 
-    private function moveToNextAlivePlayer(): void
+    private function moveToNextAliveCombatant(): void
     {
         $combatantsCount = count($this->combatants);
 
@@ -158,23 +162,23 @@ class Combat
             }
         }
 
-        throw new NoAlivePlayerFoundException();
+        throw new NoAliveCombatantFoundException();
     }
 
     public function playCard(
-        Player  $player,
-        Card    $card,
-        ?Player $target = null
+        Player              $player,
+        Card                $card,
+        ?CombatantInterface $target = null
     ): void {
         $this->validatePlayCard($player, $card);
 
         /**
-         * @var PreparedEffect[] $preparedEffects
+         * @var ResolvedEffect[] $preparedEffects
          */
         $preparedEffects = [];
 
         foreach ($card->getEffects() as $effect) {
-            $preparedEffects[] = new PreparedEffect(
+            $preparedEffects[] = new ResolvedEffect(
                 $effect->effect,
                 $effect->target->resolve($this, $player, $target)
             );
@@ -195,7 +199,7 @@ class Combat
         Player $player,
         Card   $card
     ): void {
-        if ($this->gameIsEnd) {
+        if ($this->isEnded()) {
             throw new GameAlreadyEndedException();
         }
 
@@ -230,7 +234,7 @@ class Combat
     public function endTurn(
         Player $player
     ): void {
-        if ($this->gameIsEnd) {
+        if ($this->isEnded()) {
             throw new GameAlreadyEndedException();
         }
 
@@ -238,16 +242,11 @@ class Combat
             throw new NotPlayerTurnException();
         }
 
-        $this->moveToNextAlivePlayer();
-        $this->startTurn();
+        $this->moveToNextAliveCombatant();
+        $this->startCurrentTurn();
     }
 
-    public function isEnded(): bool
-    {
-        return $this->gameIsEnd;
-    }
-
-    public function getWinner(): ?CombatResult
+    public function getOutcome(): ?CombatOutcome
     {
         return $this->outcome;
     }
@@ -256,23 +255,29 @@ class Combat
      * @return Player[]
      */
     public function getOpponentsOf(
-        Player $player
+        CombatantInterface $combatant
     ): array {
-        $this->validatePlayerInGame($player);
+        if ($combatant === $this->player) {
+            return array_values(
+                array_filter(
+                    $this->enemies,
+                    static fn(Enemy $enemy): bool => $enemy->isAlive(),
+                )
+            );
+        }
 
-        return array_values(
-            array_filter(
-                $this->enemies,
-                static fn(Player $candidate): bool => $candidate !== $player,
-            ),
-        );
+        if (in_array($combatant, $this->enemies, true)) {
+            return [$this->player];
+        }
+
+        throw new CombatantNotInCombatException();
     }
 
     private function validatePlayerInGame(
         Player $player
     ): void {
         if (!in_array($player, $this->enemies, true)) {
-            throw new PlayerNotInGameException();
+            throw new CombatantNotInCombatException();
         }
     }
 }

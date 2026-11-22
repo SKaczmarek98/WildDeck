@@ -6,10 +6,11 @@ namespace WildDeck\Game\Exception;
 
 use RuntimeException;
 
-final class NoAlivePlayerFoundException extends RuntimeException
+final class CombatantNotInCombatException extends RuntimeException
 {
+
     public function __construct()
     {
-        parent::__construct('No alive player found.');
+        parent::__construct("The combatant is not in the game");
     }
 }

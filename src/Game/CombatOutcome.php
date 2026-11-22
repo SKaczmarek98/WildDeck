@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace WildDeck\Game;
 
-enum CombatResult
+enum CombatOutcome
 {
-    case PLAYER_WIN;
-    case ENEMY_WIN;
+    case VICTORY;
+    case DEFEAT;
 }

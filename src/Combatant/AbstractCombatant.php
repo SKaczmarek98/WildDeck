@@ -7,7 +7,7 @@ namespace WildDeck\Combatant;
 use InvalidArgumentException;
 use WildDeck\Status\StatusInterface;
 
-class Combatant
+abstract class AbstractCombatant implements CombatantInterface
 {
     protected const int MIN_LIFE_POINTS = 0;
 
@@ -22,8 +22,7 @@ class Combatant
     public function __construct(
         string $name,
         int    $maxLifePoints
-    )
-    {
+    ) {
         $this->name = $name;
         $this->lifePoints = $maxLifePoints;
         $this->maxLifePoints = $maxLifePoints;
@@ -79,7 +78,7 @@ class Combatant
         $this->statuses[] = $status;
     }
 
-    public function processStatues(): void
+    public function processStatuses(): void
     {
         foreach ($this->statuses as $index => $status) {
             $status->onTurnStart($this);

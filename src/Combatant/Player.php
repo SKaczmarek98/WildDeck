@@ -8,7 +8,7 @@ use InvalidArgumentException;
 use WildDeck\Cards\CardCollection;
 use WildDeck\Game\Exception\NoManaToPlayCardException;
 
-class Player extends Combatant
+class Player extends AbstractCombatant
 {
     private const int MAX_LIFE_POINTS = 20;
     private const int MAX_MANA_POINTS = 3;

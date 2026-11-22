@@ -4,19 +4,18 @@ declare(strict_types=1);
 
 namespace WildDeck\Game;
 
-use WildDeck\Combatant\Combatant;
+use WildDeck\Combatant\CombatantInterface;
 use WildDeck\Effect\EffectInterface;
 
-final readonly class PreparedEffect
+final readonly class ResolvedEffect
 {
     /**
      * @param EffectInterface $effect
-     * @param Combatant[] $targets
+     * @param CombatantInterface[] $targets
      */
     public function __construct(
         public EffectInterface $effect,
         public array           $targets = []
-    )
-    {
+    ) {
     }
 }

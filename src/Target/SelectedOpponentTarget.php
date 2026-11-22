@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace WildDeck\Target;
 
-use WildDeck\Combatant\Combatant;
-use WildDeck\Game\Game;
+use WildDeck\Combatant\CombatantInterface;
+use WildDeck\Game\CombatInterface;
 use WildDeck\Target\Exception\InvalidTargetException;
 use WildDeck\Target\Exception\TargetRequiredException;
 
@@ -13,11 +13,10 @@ final class SelectedOpponentTarget implements TargetResolverInterface
 {
 
     public function resolve(
-        Game       $game,
-        Combatant  $source,
-        ?Combatant $selectedTarget,
-    ): array
-    {
+        CombatInterface     $combat,
+        CombatantInterface  $source,
+        ?CombatantInterface $selectedTarget,
+    ): array {
         if ($selectedTarget === null) {
             throw new TargetRequiredException();
         }
@@ -28,7 +27,7 @@ final class SelectedOpponentTarget implements TargetResolverInterface
 
         if (!in_array(
             $selectedTarget,
-            $game->getOpponentsOf($source),
+            $combat->getOpponentsOf($source),
             true
         )) {
             throw new InvalidTargetException();

@@ -5,33 +5,31 @@ declare(strict_types=1);
 namespace WildDeck\Effect;
 
 use WildDeck\Combatant\Player;
-use WildDeck\Game\Game;
+use WildDeck\Game\CombatInterface;
 
 final class DrawEffect implements EffectInterface
 {
     public function __construct(
         private int $amount,
-    )
-    {
+    ) {
     }
 
     /**
      * @param Player[] $targets
      */
-    final public function apply(Game $game, array $targets): void
+    final public function apply(CombatInterface $combat, array $targets): void
     {
         foreach ($targets as $target) {
-            $this->applyToTarget($game, $target);
+            $this->applyToTarget($combat, $target);
         }
     }
 
     private function applyToTarget(
-        Game   $game,
-        Player $target
-    ): void
-    {
+        CombatInterface $combat,
+        Player          $target
+    ): void {
         for ($i = 0; $i < $this->amount; $i++) {
-            $game->drawCardFor($target);
+            $combat->drawCardFor($target);
         }
     }
 }

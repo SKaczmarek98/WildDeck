@@ -4,24 +4,24 @@ declare(strict_types=1);
 
 namespace WildDeck\Effect;
 
-use WildDeck\Combatant\Combatant;
-use WildDeck\Game\Game;
+use WildDeck\Combatant\CombatantInterface;
+use WildDeck\Game\CombatInterface;
 
 abstract class AbstractEffect implements EffectInterface
 {
     /**
-     * @param Combatant[] $targets
+     * @param CombatantInterface[] $targets
      */
-    final public function apply(Game $game, array $targets): void
+    final public function apply(CombatInterface $combat, array $targets): void
     {
         foreach ($targets as $target) {
-            $this->applyToTarget($game, $target);
+            $this->applyToTarget($combat, $target);
         }
     }
 
     abstract protected function applyToTarget(
-        Game      $game,
-        Combatant $target
+        CombatInterface    $combat,
+        CombatantInterface $target
     ): void;
 
 }

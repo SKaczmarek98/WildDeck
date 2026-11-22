@@ -13,8 +13,7 @@ class CardCollection
      */
     public function __construct(
         protected array $cards = [],
-    )
-    {
+    ) {
     }
 
     public function add(Card $card): void

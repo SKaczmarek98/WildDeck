@@ -5,14 +5,13 @@ declare(strict_types=1);
 namespace WildDeck\Status;
 
 use InvalidArgumentException;
-use WildDeck\Combatant\Combatant;
+use WildDeck\Combatant\CombatantInterface;
 
 abstract class AbstractStatus implements StatusInterface
 {
     public function __construct(
         protected int $remainingTurns,
-    )
-    {
+    ) {
         if ($remainingTurns <= 0) {
             throw new InvalidArgumentException(
                 'Duration must be greater than zero.'
@@ -20,13 +19,13 @@ abstract class AbstractStatus implements StatusInterface
         }
     }
 
-    final public function onTurnStart(Combatant $player): void
+    final public function onTurnStart(CombatantInterface $player): void
     {
         $this->applyEffect($player);
         $this->remainingTurns--;
     }
 
-    abstract protected function applyEffect(Combatant $player): void;
+    abstract protected function applyEffect(CombatantInterface $player): void;
 
     public function isExpired(): bool
     {

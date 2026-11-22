@@ -9,8 +9,7 @@ final readonly class RequirementResult
     public function __construct(
         public bool    $satisfied,
         public ?string $reason = null,
-    )
-    {
+    ) {
     }
 }
 

@@ -12,15 +12,13 @@ final readonly class MinHealthRequirement implements RequirementInterface
 
     public function __construct(
         private int $minHealth,
-    )
-    {
+    ) {
     }
 
     public function check(
         Game   $game,
         Player $player,
-    ): RequirementResult
-    {
+    ): RequirementResult {
         if ($player->getLifePoints() >= $this->minHealth) {
             return new RequirementResult(true);
         }
