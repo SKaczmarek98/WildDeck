@@ -4,17 +4,16 @@ declare(strict_types=1);
 
 namespace WildDeck\Target;
 
-use WildDeck\Game\Game;
-use WildDeck\Game\Player;
+use WildDeck\Combatant\CombatantInterface;
+use WildDeck\Combat\CombatInterface;
 
 final class SelfTargetResolver implements TargetResolverInterface
 {
     public function resolve(
-        Game    $game,
-        Player  $source,
-        ?Player $selectedTarget,
-    ): array
-    {
+        CombatInterface     $combat,
+        CombatantInterface  $source,
+        ?CombatantInterface $selectedTarget,
+    ): array {
         return [
             $source,
         ];

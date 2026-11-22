@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace WildDeck\Effect;
 
-use WildDeck\Game\Game;
-use WildDeck\Game\Player;
+use WildDeck\Combatant\CombatantInterface;
+use WildDeck\Combat\CombatInterface;
 
 interface EffectInterface
 {
 
     /**
-     * @param Player[] $targets
+     * @param CombatantInterface[] $targets
      */
-    public function apply(Game $game, array $targets): void;
+    public function apply(CombatInterface $combat, array $targets): void;
 
 }

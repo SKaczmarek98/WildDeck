@@ -2,18 +2,18 @@
 
 namespace WildDeck\Target;
 
-use WildDeck\Game\Game;
-use WildDeck\Game\Player;
+use WildDeck\Combatant\CombatantInterface;
+use WildDeck\Combat\CombatInterface;
 
 interface TargetResolverInterface
 {
 
     /**
-     * @return Player[]
+     * @return CombatantInterface[]
      */
     public function resolve(
-        Game    $game,
-        Player  $source,
-        ?Player $selectedTarget,
+        CombatInterface     $combat,
+        CombatantInterface  $source,
+        ?CombatantInterface $selectedTarget,
     ): array;
 }

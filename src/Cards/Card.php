@@ -17,8 +17,7 @@ final class Card
         private array  $effects,
         private int    $cost = 0,
         private array  $requirements = [],
-    )
-    {
+    ) {
     }
 
     public function getName(): string

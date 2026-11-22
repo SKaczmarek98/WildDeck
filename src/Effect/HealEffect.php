@@ -4,18 +4,17 @@ declare(strict_types=1);
 
 namespace WildDeck\Effect;
 
-use WildDeck\Game\Game;
-use WildDeck\Game\Player;
+use WildDeck\Combatant\CombatantInterface;
+use WildDeck\Combat\CombatInterface;
 
 final class HealEffect extends AbstractEffect
 {
     public function __construct(
         private int $health,
-    )
-    {
+    ) {
     }
 
-    protected function applyToTarget(Game $game, Player $target): void
+    protected function applyToTarget(CombatInterface $combat, CombatantInterface $target): void
     {
         $target->heal($this->health);
     }

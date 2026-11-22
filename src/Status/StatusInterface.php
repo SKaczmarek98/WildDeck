@@ -2,11 +2,11 @@
 
 namespace WildDeck\Status;
 
-use WildDeck\Game\Player;
+use WildDeck\Combatant\CombatantInterface;
 
 interface StatusInterface
 {
-    public function onTurnStart(Player $player): void;
+    public function onTurnStart(CombatantInterface $combatant): void;
 
     public function isExpired(): bool;
 

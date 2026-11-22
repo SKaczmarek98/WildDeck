@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace WildDeck\Game\Exception;
+namespace WildDeck\Combat\Exception;
 
 use RuntimeException;
 
