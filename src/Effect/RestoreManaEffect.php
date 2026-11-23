@@ -7,7 +7,7 @@ namespace WildDeck\Effect;
 use WildDeck\Combat\CombatInterface;
 use WildDeck\Combatant\Player;
 
-class RestoreManaEffect extends AbstractPlayerEffect
+final class RestoreManaEffect extends AbstractPlayerEffect
 {
     public function __construct(
         private int $amount,
