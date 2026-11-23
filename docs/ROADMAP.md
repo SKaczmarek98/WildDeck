@@ -37,6 +37,7 @@ PvP is not a current requirement.
 - [x] Card collections / hand
 - [x] Draw pile and discard pile inside Combat
 - [x] Mana / card cost
+- [x] `RestoreManaEffect` — immediate mana recovery, capped at the Player's maximum
 - [x] Effects
 - [x] Target resolution
 - [x] Play Requirements
@@ -138,10 +139,12 @@ Original idea:
 
 Possible variants:
 
-- [ ] restore additional mana immediately,
+- [x] restore additional mana immediately (`RestoreManaEffect`),
 - [ ] increase mana for the current turn,
 - [ ] temporarily increase maximum mana,
 - [ ] persistent max-mana upgrade.
+
+Immediate restoration is implemented and covered by Card-play tests, including recovery below and up to the maximum.
 
 Do not implement all variants at once.
 
@@ -356,7 +359,7 @@ This is guidance, not a hard commitment:
 3. Stun.
 4. Armor / damage-resolution work.
 5. Fatigue and Damage Boost.
-6. Mana/Stamina modifier.
+6. Further Mana/Stamina modifiers (temporary/max mana boosts).
 7. Card-play limit debuff.
 8. Temporary Cards.
 9. Persistent Deck / multiple Combats.
