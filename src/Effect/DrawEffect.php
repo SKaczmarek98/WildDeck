@@ -4,27 +4,17 @@ declare(strict_types=1);
 
 namespace WildDeck\Effect;
 
-use WildDeck\Combatant\Player;
 use WildDeck\Combat\CombatInterface;
+use WildDeck\Combatant\Player;
 
-final class DrawEffect implements EffectInterface
+final class DrawEffect extends AbstractPlayerEffect
 {
     public function __construct(
         private int $amount,
     ) {
     }
 
-    /**
-     * @param Player[] $targets
-     */
-    final public function apply(CombatInterface $combat, array $targets): void
-    {
-        foreach ($targets as $target) {
-            $this->applyToTarget($combat, $target);
-        }
-    }
-
-    private function applyToTarget(
+    protected function applyToTarget(
         CombatInterface $combat,
         Player          $target
     ): void {

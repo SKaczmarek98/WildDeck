@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace WildDeck\Tests\Combat;
 
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use WildDeck\Cards\Card;
 use WildDeck\Cards\CardEffect;
@@ -18,6 +19,7 @@ use WildDeck\Combatant\Player;
 use WildDeck\Effect\DamageEffect;
 use WildDeck\Effect\DrawEffect;
 use WildDeck\Effect\HealEffect;
+use WildDeck\Effect\RestoreManaEffect;
 use WildDeck\Requirement\MaxHealthRequirement;
 use WildDeck\Target\Exception\InvalidTargetException;
 use WildDeck\Target\Exception\TargetRequiredException;
@@ -90,6 +92,35 @@ final class CardPlayTest extends TestCase
 
         self::assertSame(5, $player->getHand()->count());
         self::assertFalse($player->getHand()->contains($draw));
+    }
+
+    #[DataProvider('meditationManaCosts')]
+    public function testMeditationRestoresTwoManaUpToTheMaximum(int $manaCost, int $expectedMana): void
+    {
+        $player = new Player('Hero');
+        $enemy = new Enemy('Enemy', 20, 0);
+        $fireball = TestHelper::createFireballCard(cost: $manaCost);
+        $meditation = new Card('Meditation', [
+            new CardEffect(new RestoreManaEffect(2), new SelfTargetResolver()),
+        ]);
+        $combat = new Combat($player, [$enemy], new Deck([$fireball, $meditation]));
+
+        self::assertSame(3, $player->getManaPoints());
+        $combat->playCard($player, $fireball, $enemy);
+        self::assertSame(3 - $manaCost, $player->getManaPoints());
+
+        $combat->playCard($player, $meditation);
+
+        self::assertSame($expectedMana, $player->getManaPoints());
+    }
+
+    public static function meditationManaCosts(): array
+    {
+        return [
+            'restores two mana without reaching the maximum' => [3, 2],
+            'restores two mana to reach the maximum' => [2, 3],
+            'caps the restored mana at the maximum' => [1, 3],
+        ];
     }
 
     public function testPlayerCannotPlayCardWithoutEnoughMana(): void
